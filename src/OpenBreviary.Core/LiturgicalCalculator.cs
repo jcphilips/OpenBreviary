@@ -37,5 +37,61 @@ namespace OpenBreviary.Core
       return FirstSunday;
     }
 
+    public MoveableFeasts CalculateFeasts(DateTime easter)
+    {
+      return new MoveableFeasts(
+          AshWednesday: easter.AddDays(-46),
+          ThursdayAfterAshWednesday: easter.AddDays(-45),
+          FridayAfterAshWednesday: easter.AddDays(-44),
+          SaturdayAfterAshWednesday: easter.AddDays(-43),
+          PalmSunday: easter.AddDays(-DAYSINAWEEK),
+          HolyThursday: easter.AddDays(-3),
+          GoodFriday: easter.AddDays(-2),
+          HolySaturday: easter.AddDays(-1),
+          Easter: easter,
+          DivineMercy: easter.AddDays(7),
+          Ascension: easter.AddDays(39),
+          Pentecost: easter.AddDays(49),
+          MostHolyTrinity: easter.AddDays(56),
+          TheBodyAndBloodOfChrist: easter.AddDays(60),
+          TheMostSacredHeartOfJesus: easter.AddDays(68)
+          );
+    }
+
+    public LiturgicalSeason GetLiturgicalSeason(DateTime date, MoveableFeasts feasts)
+    {
+      var firstSundayOfAdvent = FirstSundayOfAdvent(date.Year);
+      var christmas = new DateTime(date.Year, 12, 25);
+
+      if (date >= feasts.AshWednesday && date < feasts.PalmSunday)
+      {
+        return LiturgicalSeason.Lent;
+      }
+      if (date >= feasts.PalmSunday && date < feasts.HolyThursday)
+      {
+        return LiturgicalSeason.HolyWeek;
+      }
+      if (date >= feasts.HolyThursday && date < feasts.Easter)
+      {
+        return LiturgicalSeason.EasterTriduum;
+      }
+      if (date >= feasts.Easter && date < feasts.DivineMercy)
+      {
+        return LiturgicalSeason.EasterOctave;
+      }
+      if (date >= feasts.DivineMercy && date <= feasts.Pentecost)
+      {
+        return LiturgicalSeason.Eastertide;
+      }
+      if (date >= firstSundayOfAdvent && date < christmas)
+      {
+        return LiturgicalSeason.Advent;
+      }
+      if (date >= christmas)
+      {
+        return LiturgicalSeason.Christmastide;
+      }
+      return LiturgicalSeason.OrdinaryTime;
+    }
   }
 }
