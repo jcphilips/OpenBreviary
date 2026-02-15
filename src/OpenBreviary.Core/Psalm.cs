@@ -10,7 +10,7 @@ namespace OpenBreviary.Core
     public int HebrewNumber
     { get; set; }
 
-    public string GetLabel => $"{VulgateNumber} ({HebrewNumber})";
+    public string GetLabel => $"Psalm {VulgateNumber} ({HebrewNumber})";
 
     public string Antiphon
     { get; set; }
@@ -19,7 +19,7 @@ namespace OpenBreviary.Core
     { get; set; } = true;
 
     [SetsRequiredMembers]
-    public Psalm(int vulgate, int hebrew, int[] verses, string content, string antiphon)
+    public Psalm(int vulgate, int hebrew, int[] verses, Dictionary<int, string> content, string antiphon)
     {
       Book = "Psalms";
       Chapter = vulgate;

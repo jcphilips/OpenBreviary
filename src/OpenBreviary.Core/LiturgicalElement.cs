@@ -14,7 +14,7 @@ namespace OpenBreviary.Core
     public required int[] Verses
     { get; set; } = Array.Empty<int>();
 
-    public required string Content
-    { get; set; } = string.Empty;
+    public required Dictionary<int, string> Content
+    { get; set; } = new();
   }
 }
