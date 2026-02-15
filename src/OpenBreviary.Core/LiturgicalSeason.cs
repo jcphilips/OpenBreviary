@@ -6,6 +6,9 @@ namespace OpenBreviary.Core
     Christmastide,
     OrdinaryTime,
     Lent,
+    HolyWeek,
+    EasterTriduum,
+    EasterOctave,
     Eastertide,
   }
 }
