@@ -37,6 +37,30 @@ namespace OpenBreviary.Core
         christmas.AddDays(-(christmas.DayOfWeek - DayOfWeek.Sunday) - (3 * DAYSINAWEEK));
     }
 
+    public DateTime GetStartOfOrdinaryTime(int year)
+    {
+      DateTime baptism = GetBaptismOfTheLord(year);
+
+      // Ordinary Time starts the day after the Baptism of the Lord
+      // i.e. the following Monday
+      return baptism.AddDays(1);
+    }
+
+    public DateTime GetBaptismOfTheLord(int year)
+    {
+      // The Baptism of the Lord is on the Sunday
+      // after the Epiphany
+      DateTime jan2 = new(year, 1, 2);
+
+      // Look for the next Sunday
+      // which will be the Epiphany
+      int daysUntilSunday = ((int)DayOfWeek.Sunday - (int)jan2.DayOfWeek + 7) % 7;
+
+      daysUntilSunday += 7;
+
+      return jan2.AddDays(daysUntilSunday);
+    }
+
     public MoveableFeasts CalculateFeasts(DateTime easter)
     {
       return new MoveableFeasts(
