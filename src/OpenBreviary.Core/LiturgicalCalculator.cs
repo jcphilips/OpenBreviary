@@ -58,10 +58,14 @@ namespace OpenBreviary.Core
           );
     }
 
-    public LiturgicalSeason GetLiturgicalSeason(DateTime date, MoveableFeasts feasts)
+    public LiturgicalSeason GetLiturgicalSeason(DateTime date)
     {
-      var firstSundayOfAdvent = FirstSundayOfAdvent(date.Year);
-      var christmas = new DateTime(date.Year, 12, 25);
+      var easter = CalculateEaster(date.Year);
+      MoveableFeasts feasts = CalculateFeasts(easter);
+      DateTime firstSundayOfAdvent = FirstSundayOfAdvent(date.Year);
+      DateTime christmas = new(date.Year, 12, 25);
+      DateTime solemnityOfMaryMotherOfGod = new(date.Year, 01, 01);
+      DateTime firstMondayOfOrdinaryTime = GetStartOfOrdinaryTime(date.Year);
 
       if (date >= feasts.AshWednesday && date < feasts.PalmSunday)
       {
@@ -87,7 +91,7 @@ namespace OpenBreviary.Core
       {
         return LiturgicalSeason.Advent;
       }
-      if (date >= christmas)
+      if (date >= christmas || (date >= solemnityOfMaryMotherOfGod && date < firstMondayOfOrdinaryTime))
       {
         return LiturgicalSeason.Christmastide;
       }
