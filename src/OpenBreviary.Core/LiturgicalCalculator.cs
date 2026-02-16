@@ -31,10 +31,10 @@ namespace OpenBreviary.Core
 
     public DateTime FirstSundayOfAdvent(int year)
     {
-      DateTime christmas = new DateTime(year, 12, 25);
-      var FirstSunday = christmasDay.DayOfWeek == DayOfWeek.Sunday ? christmasDay.AddDays(-4 * DAYSINAWEEK) :
-        christmasDay.AddDays(-(christmasDay.DayOfWeek - DayOfWeek.Sunday) - (3 * DAYSINAWEEK));
-      return FirstSunday;
+      DateTime christmas = new(year, 12, 25);
+
+      return christmas.DayOfWeek == DayOfWeek.Sunday ? christmas.AddDays(-4 * DAYSINAWEEK) :
+        christmas.AddDays(-(christmas.DayOfWeek - DayOfWeek.Sunday) - (3 * DAYSINAWEEK));
     }
 
     public MoveableFeasts CalculateFeasts(DateTime easter)
