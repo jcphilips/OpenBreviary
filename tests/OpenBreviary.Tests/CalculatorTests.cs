@@ -22,9 +22,9 @@ public class CalculatorTests
   }
 
   [Theory]
-  [InlineData(2026, "2025-11-30")]
-  [InlineData(2030, "2029-12-02")]
-  [InlineData(2021, "2020-11-29")]
+  [InlineData(2025, "2025-11-30")]
+  [InlineData(2029, "2029-12-02")]
+  [InlineData(2020, "2020-11-29")]
   public void ReturnsFirstSundayOfAdvent(int year, string actualDate)
   {
     var calculator = new LiturgicalCalculator();
@@ -36,4 +36,16 @@ public class CalculatorTests
     Assert.Equal(expected, result);
   }
 
+  [Theory]
+  [InlineData(2026, "2026-01-12")]
+  public void ReturnsStartOfOrdinaryTime(int year, string actualDate)
+  {
+    var calculator = new LiturgicalCalculator();
+    var expected = DateTime.Parse(actualDate);
+
+    var result = calculator.GetStartOfOrdinaryTime(year);
+
+    // Assert
+    Assert.Equal(expected, result);
+  }
 }
