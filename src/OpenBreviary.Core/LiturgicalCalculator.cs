@@ -82,10 +82,8 @@ namespace OpenBreviary.Core
           );
     }
 
-    public LiturgicalSeason GetLiturgicalSeason(DateTime date)
+    public LiturgicalSeason GetLiturgicalSeason(DateTime date, MoveableFeasts feasts)
     {
-      var easter = CalculateEaster(date.Year);
-      MoveableFeasts feasts = CalculateFeasts(easter);
       DateTime firstSundayOfAdvent = FirstSundayOfAdvent(date.Year);
       DateTime christmas = new(date.Year, 12, 25);
       DateTime solemnityOfMaryMotherOfGod = new(date.Year, 01, 01);
