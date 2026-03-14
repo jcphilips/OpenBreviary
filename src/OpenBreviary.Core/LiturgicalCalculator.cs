@@ -7,6 +7,14 @@ namespace OpenBreviary.Core
 
     const int DAYSINAWEEK = 7;
 
+    public int GetLiturgicalYear(DateTime date)
+    {
+      var currentYear = date.Year;
+      var firstSundayOfAdvent = GetFirstSundayOfAdvent(currentYear);
+      return date >= firstSundayOfAdvent ? currentYear : currentYear - 1;
+    }
+
+
     // Uses Meeus/Jones/Butcher Gregorian Easter Algorithm 
     public DateTime CalculateEaster(int year)
     {
@@ -29,7 +37,7 @@ namespace OpenBreviary.Core
       return new DateTime(year, month, day);
     }
 
-    public DateTime FirstSundayOfAdvent(int year)
+    public DateTime GetFirstSundayOfAdvent(int year)
     {
       DateTime christmas = new(year, 12, 25);
 
@@ -84,10 +92,10 @@ namespace OpenBreviary.Core
 
     public LiturgicalSeason GetLiturgicalSeason(DateTime date, MoveableFeasts feasts)
     {
-      DateTime firstSundayOfAdvent = FirstSundayOfAdvent(date.Year);
-      DateTime christmas = new(date.Year, 12, 25);
-      DateTime solemnityOfMaryMotherOfGod = new(date.Year, 01, 01);
-      DateTime firstMondayOfOrdinaryTime = GetStartOfOrdinaryTime(date.Year);
+      DateTime Christmas = new(date.Year, 12, 25);
+      DateTime FirstSundayOfAdvent = GetFirstSundayOfAdvent(date.Year);
+      DateTime SolemnityOfMaryMotherOfGod = new(date.Year, 01, 01);
+      DateTime FirstMondayOfOrdinaryTime = GetStartOfOrdinaryTime(date.Year);
 
       if (date >= feasts.AshWednesday && date < feasts.PalmSunday)
       {
@@ -109,11 +117,11 @@ namespace OpenBreviary.Core
       {
         return LiturgicalSeason.Eastertide;
       }
-      if (date >= firstSundayOfAdvent && date < christmas)
+      if (date >= FirstSundayOfAdvent && date < Christmas)
       {
         return LiturgicalSeason.Advent;
       }
-      if (date >= christmas || (date >= solemnityOfMaryMotherOfGod && date < firstMondayOfOrdinaryTime))
+      if (date >= Christmas || (date >= SolemnityOfMaryMotherOfGod && date < FirstMondayOfOrdinaryTime))
       {
         return LiturgicalSeason.Christmastide;
       }
