@@ -2,9 +2,6 @@ namespace OpenBreviary.Core
 {
   public class LiturgicalCalculator
   {
-    // The liturgical calendar starts 4 weeks
-    // Before the Nativity of the Lord
-
     const int DAYSINAWEEK = 7;
 
     public int GetLiturgicalYear(DateTime date)
@@ -13,7 +10,6 @@ namespace OpenBreviary.Core
       var firstSundayOfAdvent = GetFirstSundayOfAdvent(currentYear);
       return date >= firstSundayOfAdvent ? currentYear : currentYear - 1;
     }
-
 
     // Uses Meeus/Jones/Butcher Gregorian Easter Algorithm 
     public DateTime CalculateEaster(int year)
@@ -37,6 +33,8 @@ namespace OpenBreviary.Core
       return new DateTime(year, month, day);
     }
 
+    // The liturgical calendar starts 4 weeks
+    // Before the Nativity of the Lord
     public DateTime GetFirstSundayOfAdvent(int year)
     {
       DateTime christmas = new(year, 12, 25);
@@ -150,7 +148,8 @@ namespace OpenBreviary.Core
       }
       else if (season is LiturgicalSeason.Advent || season is LiturgicalSeason.Christmastide)
       {
-        var firstSundayOfAdvent = GetFirstSundayOfAdvent(date.Year);
+        var litYear = GetLiturgicalYear(date);
+        var firstSundayOfAdvent = GetFirstSundayOfAdvent(litYear);
         diff = date - firstSundayOfAdvent;
       }
       else
