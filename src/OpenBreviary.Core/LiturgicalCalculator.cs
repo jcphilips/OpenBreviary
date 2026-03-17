@@ -127,5 +127,39 @@ namespace OpenBreviary.Core
       }
       return LiturgicalSeason.OrdinaryTime;
     }
+
+    public int CalculatePsalterWeek(DateTime date, LiturgicalSeason season,
+        MoveableFeasts feasts)
+    {
+      int numOfWeeks;
+      TimeSpan diff;
+      if (season is LiturgicalSeason.Lent || season is LiturgicalSeason.EasterTriduum)
+      {
+        DateTime firstSundayOfLent = feasts.AshWednesday.AddDays(4);
+        diff = date - firstSundayOfLent;
+        numOfWeeks = diff.Days / DAYSINAWEEK;
+        //Early return if still in week before first sunday of lent
+        if (numOfWeeks < 0)
+        {
+          return 4;
+        }
+      }
+      if (season is LiturgicalSeason.EasterOctave || season is LiturgicalSeason.Eastertide)
+      {
+        diff = date - feasts.Easter;
+      }
+      else if (season is LiturgicalSeason.Advent || season is LiturgicalSeason.Christmastide)
+      {
+        var firstSundayOfAdvent = GetFirstSundayOfAdvent(date.Year);
+        diff = date - firstSundayOfAdvent;
+      }
+      else
+      {
+        DateTime firstMondayOfOrdinaryTime = GetStartOfOrdinaryTime(date.Year);
+        diff = date - firstMondayOfOrdinaryTime;
+      }
+      numOfWeeks = diff.Days / DAYSINAWEEK;
+      return (numOfWeeks % 4) + 1;
+    }
   }
 }
