@@ -1,25 +1,22 @@
 namespace OpenBreviary.Core
 {
-  public class OfficeService
+  public class OfficeService(LiturgicalCalculator calculator)
   {
-    private readonly LiturgicalCalculator _calculator;
-
-    public OfficeService(LiturgicalCalculator calculator)
-    {
-      _calculator = calculator;
-    }
-
     public LiturgicalTime GetLiturgicalDay(DateTime date)
     {
-      var easter = _calculator.CalculateEaster(date.Year);
-      var feasts = _calculator.CalculateFeasts(easter);
-      var season = _calculator.GetLiturgicalSeason(date, feasts);
+      var year = calculator.GetLiturgicalYear(date);
+      var easter = calculator.CalculateEaster(year);
+      var feasts = calculator.CalculateFeasts(easter);
+      var season = calculator.GetLiturgicalSeason(date, feasts);
+
+      var context = new LiturgicalContext(date, season, feasts, year);
 
       return new LiturgicalTime
       {
         Date = date,
         Season = season,
-        Description = $"Day in {season}"
+        WeekOfSeason = calculator.GetWeekOfSeason(context),
+        PsalterWeek = calculator.CalculatePsalterWeek(context),
       };
     }
   }
