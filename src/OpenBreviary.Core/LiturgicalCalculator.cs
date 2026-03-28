@@ -2,13 +2,13 @@ namespace OpenBreviary.Core
 {
   public class LiturgicalCalculator
   {
-    const int DAYSINAWEEK = 7;
+    const int DAYS_IN_A_WEEK = 7;
 
     public int GetLiturgicalYear(DateTime date)
     {
       var currentYear = date.Year;
       var firstSundayOfAdvent = GetFirstSundayOfAdvent(currentYear);
-      return date >= firstSundayOfAdvent ? currentYear : currentYear - 1;
+      return date >= firstSundayOfAdvent ? currentYear + 1 : currentYear;
     }
 
     // Uses Meeus/Jones/Butcher Gregorian Easter Algorithm 
@@ -39,8 +39,8 @@ namespace OpenBreviary.Core
     {
       DateTime christmas = new(year, 12, 25);
 
-      return christmas.DayOfWeek == DayOfWeek.Sunday ? christmas.AddDays(-4 * DAYSINAWEEK) :
-        christmas.AddDays(-(christmas.DayOfWeek - DayOfWeek.Sunday) - (3 * DAYSINAWEEK));
+      return christmas.DayOfWeek == DayOfWeek.Sunday ? christmas.AddDays(-4 * DAYS_IN_A_WEEK) :
+        christmas.AddDays(-(christmas.DayOfWeek - DayOfWeek.Sunday) - (3 * DAYS_IN_A_WEEK));
     }
 
     public DateTime GetStartOfOrdinaryTime(int year)
@@ -74,7 +74,7 @@ namespace OpenBreviary.Core
           ThursdayAfterAshWednesday: easter.AddDays(-45),
           FridayAfterAshWednesday: easter.AddDays(-44),
           SaturdayAfterAshWednesday: easter.AddDays(-43),
-          PalmSunday: easter.AddDays(-DAYSINAWEEK),
+          PalmSunday: easter.AddDays(-DAYS_IN_A_WEEK),
           HolyThursday: easter.AddDays(-3),
           GoodFriday: easter.AddDays(-2),
           HolySaturday: easter.AddDays(-1),
@@ -126,16 +126,73 @@ namespace OpenBreviary.Core
       return LiturgicalSeason.OrdinaryTime;
     }
 
-    public int CalculatePsalterWeek(DateTime date, LiturgicalSeason season,
-        MoveableFeasts feasts)
+    public int GetWeekOfSeason(LiturgicalContext context)
     {
+      var season = context.Season;
+      var currentDate = context.Date;
+      var feasts = context.Feasts;
+
+      if (season is LiturgicalSeason.Advent)
+      {
+        var firstSundayOfAdvent = GetFirstSundayOfAdvent(currentDate.Year);
+        var daysSinceStartOfAdvent = (currentDate - firstSundayOfAdvent).Days;
+        return (daysSinceStartOfAdvent / DAYS_IN_A_WEEK) + 1;
+      }
+      if (season is LiturgicalSeason.Lent)
+      {
+        var FirstSundayOfLent = feasts.AshWednesday.AddDays(4);
+        if (currentDate < FirstSundayOfLent)
+        {
+          // Start of Lent has its own Psalter and prayers
+          return 0;
+        }
+
+        var daysSinceFirstSundayOfLent = (currentDate - FirstSundayOfLent).Days;
+        return (daysSinceFirstSundayOfLent / DAYS_IN_A_WEEK) + 1;
+      }
+
+      if (season is LiturgicalSeason.EasterOctave)
+      {
+        return 1;
+      }
+
+      if (season is LiturgicalSeason.Eastertide)
+      {
+        var daysSinceEaster = (currentDate - feasts.Easter).Days;
+        return (daysSinceEaster / DAYS_IN_A_WEEK) + 1;
+      }
+      if (season is LiturgicalSeason.OrdinaryTime && currentDate < feasts.AshWednesday)
+      {
+        var firstMondayOfOrdinaryTime = GetStartOfOrdinaryTime(currentDate.Year);
+        var precedingSunday = firstMondayOfOrdinaryTime.AddDays(-1);
+        return (currentDate - precedingSunday).Days / DAYS_IN_A_WEEK;
+      }
+
+      if (season is LiturgicalSeason.OrdinaryTime && currentDate > feasts.Easter)
+      {
+        int daysSinceSunday = (int)currentDate.DayOfWeek;
+        var currentSunday = currentDate.AddDays(-daysSinceSunday);
+        var firstSundayOfAdvent = GetFirstSundayOfAdvent(currentDate.Year);
+        var weeksTillAdvent = (firstSundayOfAdvent - currentSunday).Days / DAYS_IN_A_WEEK;
+        return 34 - (weeksTillAdvent - 1);
+      }
+      // if for whatever reason we fail
+      return -1;
+    }
+
+    public int CalculatePsalterWeek(LiturgicalContext context)
+    {
+      var date = context.Date;
+      var season = context.Season;
+      var feasts = context.Feasts;
       int numOfWeeks;
       TimeSpan diff;
+
       if (season is LiturgicalSeason.Lent || season is LiturgicalSeason.EasterTriduum)
       {
         DateTime firstSundayOfLent = feasts.AshWednesday.AddDays(4);
         diff = date - firstSundayOfLent;
-        numOfWeeks = diff.Days / DAYSINAWEEK;
+        numOfWeeks = diff.Days / DAYS_IN_A_WEEK;
         //Early return if still in week before first sunday of lent
         if (numOfWeeks < 0)
         {
@@ -157,7 +214,7 @@ namespace OpenBreviary.Core
         DateTime firstMondayOfOrdinaryTime = GetStartOfOrdinaryTime(date.Year);
         diff = date - firstMondayOfOrdinaryTime;
       }
-      numOfWeeks = diff.Days / DAYSINAWEEK;
+      numOfWeeks = diff.Days / DAYS_IN_A_WEEK;
       return (numOfWeeks % 4) + 1;
     }
   }

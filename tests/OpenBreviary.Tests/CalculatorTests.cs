@@ -30,7 +30,7 @@ public class CalculatorTests
     var calculator = new LiturgicalCalculator();
     var expected = DateTime.Parse(actualDate);
 
-    var result = calculator.FirstSundayOfAdvent(year);
+    var result = calculator.GetFirstSundayOfAdvent(year);
 
     // Assert
     Assert.Equal(expected, result);
