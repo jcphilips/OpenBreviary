@@ -11,6 +11,8 @@ namespace OpenBreviary.Tests
     [InlineData("2026-02-18", LiturgicalSeason.Lent)]
     [InlineData("2026-02-17", LiturgicalSeason.OrdinaryTime)]
     [InlineData("2026-02-25", LiturgicalSeason.Lent)]
+    [InlineData("2026-03-29", LiturgicalSeason.HolyWeek)]
+    [InlineData("2026-04-03", LiturgicalSeason.EasterTriduum)]
     [InlineData("2026-04-05", LiturgicalSeason.EasterOctave)]
     [InlineData("2026-08-05", LiturgicalSeason.OrdinaryTime)]
     public void ReturnCorrectLiturgicalSeason(string date, LiturgicalSeason expected)
