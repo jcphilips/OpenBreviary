@@ -96,6 +96,10 @@ namespace OpenBreviary.Core
       DateTime SolemnityOfMaryMotherOfGod = new(date.Year, 01, 01);
       DateTime FirstMondayOfOrdinaryTime = GetStartOfOrdinaryTime(date.Year);
 
+      if (date >= SolemnityOfMaryMotherOfGod && date < FirstMondayOfOrdinaryTime)
+      {
+        return LiturgicalSeason.Christmastide;
+      }
       if (date >= feasts.AshWednesday && date < feasts.PalmSunday)
       {
         return LiturgicalSeason.Lent;
@@ -120,9 +124,9 @@ namespace OpenBreviary.Core
       {
         return LiturgicalSeason.Advent;
       }
-      if (date >= Christmas || (date >= SolemnityOfMaryMotherOfGod && date < FirstMondayOfOrdinaryTime))
+      if (date >= Christmas)
       {
-        return LiturgicalSeason.Christmastide;
+        return LiturgicalSeason.ChristmasOctave;
       }
       return LiturgicalSeason.OrdinaryTime;
     }
@@ -133,11 +137,39 @@ namespace OpenBreviary.Core
       var currentDate = context.Date;
       var feasts = context.Feasts;
 
+
       if (season is LiturgicalSeason.Advent)
       {
         var firstSundayOfAdvent = GetFirstSundayOfAdvent(currentDate.Year);
         var daysSinceStartOfAdvent = (currentDate - firstSundayOfAdvent).Days;
         return (daysSinceStartOfAdvent / DAYS_IN_A_WEEK) + 1;
+      }
+      if (season is LiturgicalSeason.ChristmasOctave)
+      {
+        // Throughout the octave of Christmas, Evening Prayer is of the octave,
+        // as given below for each day. Solemntities and Sunday of the Holy Family 
+        // are exceptions to this directive.
+        //
+        // Throughout the octave of Christmas, either form of Night Prayer for Sunday is used each evening.
+        //
+        // Sunday within the Octave of Christmas - Feast of the Holy Family (Psalter Week 1)
+        // If Christmas falls on a Sunday, the Feast of the Holy Family is celebrated on the 30th and has
+        // no Evening Prayer I.
+        // 26th - Lauds of St Stehphen if not a Sunday
+        // 27th - Lauds of St John, Apostle and Evangelist if not a Sunday
+        // 28th - Lauds of Holy Innocents if not a Sunday
+        return 1;
+      }
+      if (season is LiturgicalSeason.Christmastide)
+      {
+        // The manner of celebrating this time depends on the day chosen by the Region for the Solemnity 
+        // of the Epiphany. The offices are set out according to 2 possibilities.
+        // A: Epiphany is celebrated on the 6th of January
+        // B: Epihany is celebrated on the Sunday between the 2nd and 8th of January
+        // AB: Offices celebrated in all regions
+        // A(B): Offices may be celebrated in all regions but vary year to year.
+
+        return 2;
       }
       if (season is LiturgicalSeason.Lent)
       {
@@ -151,6 +183,9 @@ namespace OpenBreviary.Core
         var daysSinceFirstSundayOfLent = (currentDate - FirstSundayOfLent).Days;
         return (daysSinceFirstSundayOfLent / DAYS_IN_A_WEEK) + 1;
       }
+
+      if (season is LiturgicalSeason.HolyWeek || season is LiturgicalSeason.EasterTriduum) return 6;
+
 
       if (season is LiturgicalSeason.EasterOctave)
       {
@@ -189,7 +224,7 @@ namespace OpenBreviary.Core
       if (season is LiturgicalSeason.Lent && weekOfSeason == 0) return 4;
       if (weekOfSeason == 0) throw new Exception("Invalid week of season.");
 
-      return ((weekOfSeason - 1) % FOUR_WEEK_PSALTER) + 1;                                // I don't like how we handle this but seems better than changing FOUR_WEEK_PSALTER = 5
+      return ((weekOfSeason - 1) % FOUR_WEEK_PSALTER) + 1;
     }
   }
 }
