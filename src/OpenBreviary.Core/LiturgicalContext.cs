@@ -4,6 +4,7 @@ namespace OpenBreviary.Core
       DateTime Date,
       LiturgicalSeason Season,
       MoveableFeasts Feasts,
-      int LiturgicalYear
+      int LiturgicalYear,
+      LiturgicalConfiguration Configuration = null
       );
 }

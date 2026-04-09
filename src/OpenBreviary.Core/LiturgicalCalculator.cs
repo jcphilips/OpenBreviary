@@ -44,32 +44,49 @@ namespace OpenBreviary.Core
         christmas.AddDays(-(christmas.DayOfWeek - DayOfWeek.Sunday) - (3 * DAYS_IN_A_WEEK));
     }
 
-    public DateTime GetStartOfOrdinaryTime(int year)
+    public DateTime GetStartOfOrdinaryTime(int year, LiturgicalConfiguration config = null)
     {
-      DateTime baptism = GetBaptismOfTheLord(year);
+      DateTime baptism = GetBaptismOfTheLord(year, config);
 
       // Ordinary Time starts the day after the Baptism of the Lord
-      // i.e. the following Monday
+      // i.e. the following Monday (if Baptism is Sunday) or Tuesday (if Baptism is Monday)
       return baptism.AddDays(1);
     }
 
-    public DateTime GetBaptismOfTheLord(int year)
+    public DateTime GetBaptismOfTheLord(int year, LiturgicalConfiguration config = null)
     {
-      // The Baptism of the Lord is on the Sunday
-      // after the Epiphany
-      DateTime jan2 = new(year, 1, 2);
+      config ??= new LiturgicalConfiguration();
 
-      // Look for the next Sunday
-      // which will be the Epiphany
-      int daysUntilSunday = ((int)DayOfWeek.Sunday - (int)jan2.DayOfWeek + 7) % 7;
+      if (!config.EpiphanyTransferredToSunday)
+      {
+        // Epiphany is Jan 6. The Baptism of the Lord is on the Sunday after the Epiphany
+        DateTime jan6 = new(year, 1, 6);
+        int daysUntilSunday = ((int)DayOfWeek.Sunday - (int)jan6.DayOfWeek + 7) % 7;
+        if (daysUntilSunday == 0) daysUntilSunday = 7;
+        return jan6.AddDays(daysUntilSunday);
+      }
+      else
+      {
+        // The Baptism of the Lord is on the Sunday after the Epiphany
+        DateTime jan2 = new(year, 1, 2);
 
-      daysUntilSunday += 7;
+        // Look for the next Sunday which will be the Epiphany
+        int daysUntilSunday = ((int)DayOfWeek.Sunday - (int)jan2.DayOfWeek + 7) % 7;
+        DateTime epiphany = jan2.AddDays(daysUntilSunday);
 
-      return jan2.AddDays(daysUntilSunday);
+        // If Epiphany falls on Sunday Jan 7 or 8, Baptism is the following Monday
+        if (epiphany.Day == 7 || epiphany.Day == 8)
+        {
+          return epiphany.AddDays(1);
+        }
+
+        return epiphany.AddDays(7);
+      }
     }
 
-    public MoveableFeasts CalculateFeasts(DateTime easter)
+    public MoveableFeasts CalculateFeasts(DateTime easter, LiturgicalConfiguration config = null)
     {
+      config ??= new LiturgicalConfiguration();
       return new MoveableFeasts(
           AshWednesday: easter.AddDays(-46),
           ThursdayAfterAshWednesday: easter.AddDays(-45),
@@ -81,7 +98,7 @@ namespace OpenBreviary.Core
           HolySaturday: easter.AddDays(-1),
           Easter: easter,
           DivineMercy: easter.AddDays(7),
-          Ascension: easter.AddDays(39),
+          Ascension: config.AscensionTransferredToSunday ? easter.AddDays(42) : easter.AddDays(39),
           Pentecost: easter.AddDays(49),
           MostHolyTrinity: easter.AddDays(56),
           TheBodyAndBloodOfChrist: easter.AddDays(60),
@@ -89,12 +106,12 @@ namespace OpenBreviary.Core
           );
     }
 
-    public LiturgicalSeason GetLiturgicalSeason(DateTime date, MoveableFeasts feasts)
+    public LiturgicalSeason GetLiturgicalSeason(DateTime date, MoveableFeasts feasts, LiturgicalConfiguration config = null)
     {
       DateTime Christmas = new(date.Year, 12, 25);
       DateTime FirstSundayOfAdvent = GetFirstSundayOfAdvent(date.Year);
       DateTime SolemnityOfMaryMotherOfGod = new(date.Year, 01, 01);
-      DateTime FirstMondayOfOrdinaryTime = GetStartOfOrdinaryTime(date.Year);
+      DateTime FirstMondayOfOrdinaryTime = GetStartOfOrdinaryTime(date.Year, config);
 
       if (date >= SolemnityOfMaryMotherOfGod && date < FirstMondayOfOrdinaryTime)
       {
@@ -169,6 +186,20 @@ namespace OpenBreviary.Core
         // AB: Offices celebrated in all regions
         // A(B): Offices may be celebrated in all regions but vary year to year.
 
+        var config = context.Configuration ?? new LiturgicalConfiguration();
+        DateTime epiphany;
+        if (!config.EpiphanyTransferredToSunday)
+        {
+          epiphany = new DateTime(currentDate.Year, 1, 6);
+        }
+        else
+        {
+          DateTime jan2 = new(currentDate.Year, 1, 2);
+          int daysUntilSunday = ((int)DayOfWeek.Sunday - (int)jan2.DayOfWeek + 7) % 7;
+          epiphany = jan2.AddDays(daysUntilSunday);
+        }
+
+        if (currentDate < epiphany) return 1;
         return 2;
       }
       if (season is LiturgicalSeason.Lent)
@@ -199,9 +230,15 @@ namespace OpenBreviary.Core
       }
       if (season is LiturgicalSeason.OrdinaryTime && currentDate < feasts.AshWednesday)
       {
-        var firstMondayOfOrdinaryTime = GetStartOfOrdinaryTime(currentDate.Year);
-        var precedingSunday = firstMondayOfOrdinaryTime.AddDays(-1);
-        return (currentDate - precedingSunday).Days / DAYS_IN_A_WEEK;
+        var config = context.Configuration ?? new LiturgicalConfiguration();
+
+        var precedingSunday = GetStartOfOrdinaryTime(currentDate.Year, config);
+        while (precedingSunday.DayOfWeek != DayOfWeek.Sunday)
+        {
+          precedingSunday = precedingSunday.AddDays(-1);
+        }
+
+        return ((currentDate - precedingSunday).Days / DAYS_IN_A_WEEK) + 1;
       }
 
       if (season is LiturgicalSeason.OrdinaryTime && currentDate > feasts.Easter)

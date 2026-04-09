@@ -21,7 +21,7 @@ namespace OpenBreviary.Tests
     }
 
     [Theory]
-    [InlineData("2010-12-25", LiturgicalSeason.Christmastide)]
+    [InlineData("2010-12-25", LiturgicalSeason.ChristmasOctave)]
     [InlineData("2026-02-18", LiturgicalSeason.Lent)]
     [InlineData("2026-02-17", LiturgicalSeason.OrdinaryTime)]
     [InlineData("2026-02-25", LiturgicalSeason.Lent)]
